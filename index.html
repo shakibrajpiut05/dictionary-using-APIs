@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dictionary</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+    <div class="header">
+    <img src="image/agenda.png" alt="" width="40" height ="40">
+    <h1> Dictionary</h1>
+    <div>
+      <select class="font-selector">
+        <option value="Serif">Serif</option>
+        <option value="Sans-serif">Sans-serif</option>
+        <option value="Monospace">Monospace</option>
+      </select>
+      <label class="switch">
+        <input type="checkbox" id="themeToggle">
+        <span class="slider"></span>
+      </label>
+      </button>
+    </div>
+  </div>
+  <input type="text" id="wordInput" placeholder="Search for a word..." />
+  <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    document.getElementById('themeToggle').addEventListener('change', function () {
+  document.body.classList.toggle('dark-mode', this.checked);
+});
+
+    const wordInput = document.getElementById('wordInput');
+    const resultDiv = document.getElementById('result');
+    
+    const fontSelector = document.querySelector('.font-selector');
+
+    
+
+    fontSelector.addEventListener('change', (e) => {
+      document.body.style.fontFamily = e.target.value;
+    });
+
+    wordInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const word = wordInput.value;
+        fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`)
+          .then(res => res.json())
+          .then(data => {
+            const wordData = data[0];
+            const meaning = wordData.meanings[0].definitions[0].definition;
+            const phonetics = wordData.phonetics.find(p => p.audio);
+            const audio = phonetics ? `<button style="background-color:blue;border: 1px solid black; margin:8px;" class="play-button" onclick="new Audio('${phonetics.audio}').play()">Play</button>` : '';
+            const synonyms = wordData.meanings[0].synonyms?.join(', ') || 'No synonyms';
+
+            resultDiv.innerHTML = `
+              <h2 style="color:grey;font-size:70px;">${wordData.word}</h2>
+              <p><em>${wordData.phonetic || ''}</em></p>
+              ${audio}
+              <h3 style="font-size:20px;">Meaning</h3>
+              <p style="font-size:30px;">${meaning}</p>
+              <h4 style="font-size:20px;margin-top:10px;" >Synonyms:</h4>
+              <p style="font-size:30px">${synonyms}</p>
+            `;
+          })
+          .catch(err => {
+            resultDiv.innerHTML = '<p>Word not found.</p>';
+          });
+      }
+    });
+  </script>
+</body>
+</html>
